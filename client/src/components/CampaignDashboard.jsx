@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, TrendingUp, MousePointer, DollarSign, Eye, RefreshCw } from 'lucide-react';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = 'https://campaign-analytics-dashboard-1.onrender.com';
 
 export default function CampaignDashboard() {
   const [campaigns, setCampaigns] = useState([]);
