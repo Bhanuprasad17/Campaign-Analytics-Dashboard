@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, TrendingUp, MousePointer, DollarSign, Eye, RefreshCw } from 'lucide-react';
+import DataTable from 'react-data-table-component';
 
 const API_URL = 'https://campaign-analytics-dashboard-1.onrender.com';
 
@@ -75,6 +76,181 @@ export default function CampaignDashboard() {
     : 0;
 
   const activeCampaigns = campaigns.filter(c => c.Status === true).length;
+
+  // DataTable columns configuration
+  const columns = [
+    {
+      name: 'Campaign Name',
+      selector: row => row.Name,
+      sortable: true,
+      grow: 2,
+      cell: row => (
+        <div className="py-2">
+          <div className="text-sm font-semibold text-slate-900">{row.Name}</div>
+          <div className="text-xs text-slate-500">ID: {row.id}</div>
+        </div>
+      ),
+    },
+    {
+      name: 'Status',
+      selector: row => row.Status,
+      sortable: true,
+      cell: row => (
+        row.Status ? (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+            Active
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+            Paused
+          </span>
+        )
+      ),
+    },
+    {
+      name: 'Clicks',
+      selector: row => row.Clicks || 0,
+      sortable: true,
+      right: true,
+      cell: row => (
+        <span className="text-sm font-medium text-slate-900">
+          {(row.Clicks || 0).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      name: 'Impressions',
+      selector: row => row.Impressions || 0,
+      sortable: true,
+      right: true,
+      cell: row => (
+        <span className="text-sm font-medium text-slate-900">
+          {(row.Impressions || 0).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      name: 'CTR',
+      selector: row => {
+        const ctr = row.Impressions > 0 
+          ? ((row.Clicks / row.Impressions) * 100)
+          : 0;
+        return ctr;
+      },
+      sortable: true,
+      right: true,
+      cell: row => {
+        const ctr = row.Impressions > 0 
+          ? ((row.Clicks / row.Impressions) * 100).toFixed(2)
+          : '0.00';
+        return (
+          <span className={`text-sm font-medium ${parseFloat(ctr) > 2 ? 'text-emerald-600' : 'text-slate-900'}`}>
+            {ctr}%
+          </span>
+        );
+      },
+    },
+    {
+      name: 'Cost',
+      selector: row => row.Cost || 0,
+      sortable: true,
+      right: true,
+      cell: row => (
+        <span className="text-sm font-medium text-slate-900">
+          ${(row.Cost || 0).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      name: 'CPC',
+      selector: row => {
+        const cpc = row.Clicks > 0 
+          ? (row.Cost / row.Clicks)
+          : 0;
+        return cpc;
+      },
+      sortable: true,
+      right: true,
+      cell: row => {
+        const cpc = row.Clicks > 0 
+          ? (row.Cost / row.Clicks).toFixed(2)
+          : '0.00';
+        return (
+          <span className="text-sm font-medium text-slate-900">
+            ${cpc}
+          </span>
+        );
+      },
+    },
+  ];
+
+  // Custom styles for DataTable
+  const customStyles = {
+    table: {
+      style: {
+        backgroundColor: 'white',
+      },
+    },
+    headRow: {
+      style: {
+        backgroundColor: '#f8fafc',
+        borderBottom: '1px solid #e2e8f0',
+        minHeight: '56px',
+      },
+    },
+    headCells: {
+      style: {
+        fontSize: '12px',
+        fontWeight: '700',
+        color: '#475569',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        paddingLeft: '24px',
+        paddingRight: '24px',
+      },
+    },
+    rows: {
+      style: {
+        minHeight: '72px',
+        '&:hover': {
+          backgroundColor: '#f8fafc',
+          transition: 'background-color 150ms ease',
+        },
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: '24px',
+        paddingRight: '24px',
+      },
+    },
+    pagination: {
+      style: {
+        borderTop: '1px solid #e2e8f0',
+        minHeight: '56px',
+      },
+      pageButtonsStyle: {
+        borderRadius: '8px',
+        height: '36px',
+        width: '36px',
+        padding: '4px',
+        margin: '0 4px',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        backgroundColor: 'transparent',
+        fill: '#64748b',
+        '&:disabled': {
+          cursor: 'not-allowed',
+          fill: '#cbd5e1',
+        },
+        '&:hover:not(:disabled)': {
+          backgroundColor: '#f1f5f9',
+        },
+      },
+    },
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
@@ -161,7 +337,7 @@ export default function CampaignDashboard() {
 
         {/* Add Campaign Form */}
         {showForm && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 border border-slate-200 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl p-6 mb-6 border border-slate-200">
             <h2 className="text-xl font-bold text-slate-800 mb-6">Create New Campaign</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -260,105 +436,38 @@ export default function CampaignDashboard() {
           </div>
         )}
 
-        {/* Campaigns Table */}
+        {/* Campaigns DataTable */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
           <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
             <h2 className="text-xl font-bold text-slate-800">All Campaigns</h2>
           </div>
           
-          {loading ? (
-            <div className="p-16 text-center">
-              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent"></div>
-              <p className="mt-4 text-slate-600 font-medium">Loading campaigns...</p>
-            </div>
-          ) : campaigns.length === 0 ? (
-            <div className="p-16 text-center">
-              <div className="bg-slate-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-10 h-10 text-slate-400" />
+          <DataTable
+            columns={columns}
+            data={campaigns}
+            pagination
+            paginationPerPage={5}
+            paginationRowsPerPageOptions={[5, 10, 15, 20, 25]}
+            progressPending={loading}
+            progressComponent={
+              <div className="p-16 text-center">
+                <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent"></div>
+                <p className="mt-4 text-slate-600 font-medium">Loading campaigns...</p>
               </div>
-              <p className="text-slate-500 text-lg font-medium">No campaigns found</p>
-              <p className="text-slate-400 text-sm mt-2">Create your first campaign to get started!</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                      Campaign Name
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                      Clicks
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                      Impressions
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                      CTR
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                      Cost
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                      CPC
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
-                  {campaigns.map((campaign) => {
-                    const ctr = campaign.Impressions > 0 
-                      ? ((campaign.Clicks / campaign.Impressions) * 100).toFixed(2) 
-                      : '0.00';
-                    const cpc = campaign.Clicks > 0 
-                      ? (campaign.Cost / campaign.Clicks).toFixed(2) 
-                      : '0.00';
-
-                    return (
-                      <tr key={campaign.id} className="hover:bg-slate-50 transition-colors duration-150">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-semibold text-slate-900">{campaign.Name}</div>
-                          <div className="text-xs text-slate-500">ID: {campaign.id}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {campaign.Status ? (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
-                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                              Active
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200">
-                              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
-                              Paused
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                          {campaign.Clicks?.toLocaleString() || 0}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                          {campaign.Impressions?.toLocaleString() || 0}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                          <span className={`${parseFloat(ctr) > 2 ? 'text-emerald-600' : 'text-slate-900'}`}>
-                            {ctr}%
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                          ${campaign.Cost?.toLocaleString() || 0}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                          ${cpc}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+            }
+            noDataComponent={
+              <div className="p-16 text-center">
+                <div className="bg-slate-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-10 h-10 text-slate-400" />
+                </div>
+                <p className="text-slate-500 text-lg font-medium">No campaigns found</p>
+                <p className="text-slate-400 text-sm mt-2">Create your first campaign to get started!</p>
+              </div>
+            }
+            customStyles={customStyles}
+            highlightOnHover
+            pointerOnHover
+          />
         </div>
       </div>
     </div>
